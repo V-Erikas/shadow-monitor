@@ -14,6 +14,16 @@ docker compose up
 
 Open http://localhost:8501.
 
+### Credentials
+
+No credentials are committed. Official sources (Sodra, Registrų centras) are public.
+
+- **With `GOOGLE_API_KEY` in `.env`**: fresh Google Places data is collected and saved
+  as a new snapshot in `snapshots/google/`.
+- **Without a key** (clean machine): the latest committed snapshot from a real run is
+  replayed, and the rest of the pipeline runs normally. Each listing records its
+  `source` (`live` or `snapshot:<file>`).
+
 ## Local development
 
 ```powershell

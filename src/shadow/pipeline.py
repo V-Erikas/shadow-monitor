@@ -2,25 +2,46 @@ import argparse
 import logging
 from datetime import datetime, timezone
 
-from shadow import match, quality, score
+from shadow import db, match, quality, score
 from shadow.collect import google, registry, sodra
 from shadow.config import DB_PATH
 
 log = logging.getLogger("shadow.pipeline")
 
+STEPS = {
+    "registry": lambda run_id: registry.load_registry(),
+    "sodra": lambda run_id: sodra.load_sodra(),
+    "google": google.collect_listings,
+    "match": match.match_listings,
+    "score": score.score_leads,
+    "quality": quality.run_checks,
+}
 
-def run() -> str:
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    log.info("Starting run %s", run_id)
 
-    log.info("Registry rows: %s", registry.load_registry())
-    log.info("Sodra rows: %s", sodra.load_sodra())
-    log.info("Google listings: %s", google.collect_listings(run_id))
-    log.info("Matched: %s", match.match_listings(run_id))
-    log.info("Flagged leads: %s", score.score_leads(run_id))
-    log.info("DQ passed: %s", quality.run_checks(run_id))
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
-    log.info("Run %s finished", run_id)
+
+def run(steps: list[str], run_id: str | None = None) -> str:
+    run_id = run_id or _utcnow().strftime("%Y%m%dT%H%M%SZ")
+    with db.connect() as con:
+        db.init_schema(con)
+        con.execute(
+            """INSERT INTO runs VALUES (?, ?, NULL, 'running')
+               ON CONFLICT (run_id) DO UPDATE SET status = 'running', finished_at = NULL""",
+            [run_id, _utcnow()],
+        )
+    log.info("Run %s: steps %s", run_id, ", ".join(steps))
+
+    status = "failed"
+    try:
+        for name in steps:
+            log.info("%s -> %s", name, STEPS[name](run_id))
+        status = "success"
+    finally:
+        with db.connect() as con:
+            con.execute("UPDATE runs SET finished_at = ?, status = ? WHERE run_id = ?", [_utcnow(), status, run_id])
+        log.info("Run %s %s", run_id, status)
     return run_id
 
 
@@ -31,13 +52,15 @@ def main() -> None:
         action="store_true",
         help="Do nothing if a database from a previous run already exists",
     )
+    parser.add_argument("--steps", nargs="+", choices=list(STEPS), default=list(STEPS))
+    parser.add_argument("--run-id", help="Re-run steps for an existing run instead of starting a new one")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
     if args.skip_if_exists and DB_PATH.exists():
         log.info("Existing database found at %s, skipping pipeline", DB_PATH)
         return
-    run()
+    run(args.steps, args.run_id)
 
 
 if __name__ == "__main__":
