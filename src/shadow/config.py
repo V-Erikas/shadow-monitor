@@ -9,6 +9,7 @@ load_dotenv()
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
 OUTPUT_DIR = ROOT / "output"
+SNAPSHOT_DIR = ROOT / "snapshots"
 DB_PATH = OUTPUT_DIR / "shadow.duckdb"
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
@@ -40,7 +41,7 @@ CATEGORIES: dict[str, Category] = {
         Category(
             key="car_repair",
             label="Car repair / tyre shops",
-            google_types=("car_repair",),
+            google_types=("car_repair", "tire_shop"),
             queries=("autoservisas Vilnius", "padangų servisas Vilnius"),
             nace_codes=("45.20", "45.32"),
             min_reviews=100,
