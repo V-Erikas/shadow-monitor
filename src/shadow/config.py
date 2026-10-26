@@ -16,6 +16,9 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 
 VILNIUS_BBOX = (54.567, 25.024, 54.832, 25.481)
 
+# Listings below this match confidence are never scored
+MATCH_THRESHOLD = 0.8
+
 
 @dataclass(frozen=True)
 class Category:
@@ -25,6 +28,8 @@ class Category:
     queries: tuple[str, ...]
     nace_codes: tuple[str, ...]
     min_reviews: int
+    # Owners sometimes registered under a neighbouring activity (e.g. coffee chain run by a retailer)
+    related_nace_codes: tuple[str, ...] = ()
 
 
 CATEGORIES: dict[str, Category] = {
@@ -37,6 +42,7 @@ CATEGORIES: dict[str, Category] = {
             queries=("kavinė Vilnius", "kava Vilnius", "coffee shop Vilnius"),
             nace_codes=("56.30", "56.11"),
             min_reviews=200,
+            related_nace_codes=("56.", "47.11", "47.2", "10.7", "10.83"),
         ),
         Category(
             key="car_repair",
@@ -45,6 +51,7 @@ CATEGORIES: dict[str, Category] = {
             queries=("autoservisas Vilnius", "padangų servisas Vilnius"),
             nace_codes=("95.31",),
             min_reviews=100,
+            related_nace_codes=("45.", "46.72", "47.81", "47.82", "33.12", "33.17"),
         ),
         Category(
             key="florist",
@@ -53,6 +60,7 @@ CATEGORIES: dict[str, Category] = {
             queries=("gėlių parduotuvė Vilnius", "gėlės Vilnius"),
             nace_codes=("47.76",),
             min_reviews=100,
+            related_nace_codes=("46.22", "47.12", "01.19"),
         ),
     )
 }
