@@ -71,6 +71,29 @@ CREATE TABLE IF NOT EXISTS sodra_monthly (
     source_file  VARCHAR NOT NULL,
     loaded_at    TIMESTAMP NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS matches (
+    run_id               VARCHAR NOT NULL,
+    place_id             VARCHAR NOT NULL,
+    category             VARCHAR NOT NULL,
+    company_code         VARCHAR,  -- null when unmatched
+    company_name         VARCHAR,
+    confidence           DOUBLE NOT NULL,
+    accepted             BOOLEAN NOT NULL,
+    method               VARCHAR NOT NULL,
+    reason               VARCHAR,
+    nace_code            VARCHAR,
+    nace_agrees          BOOLEAN,
+    google_core_name     VARCHAR,
+    website_code         VARCHAR,
+    website_page         VARCHAR,
+    website_anchored     BOOLEAN,
+    name_candidate       VARCHAR,
+    name_score           DOUBLE,
+    name_runner_up_score DOUBLE,
+    name_confidence      DOUBLE,
+    PRIMARY KEY (run_id, place_id, category)
+);
 """
 
 
