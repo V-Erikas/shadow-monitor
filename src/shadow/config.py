@@ -27,6 +27,7 @@ class Category:
     google_types: tuple[str, ...]
     queries: tuple[str, ...]
     nace_codes: tuple[str, ...]
+    # Noise floor only; expected staff already scales with review volume
     min_reviews: int
     # Owners sometimes registered under a neighbouring activity (e.g. coffee chain run by a retailer)
     related_nace_codes: tuple[str, ...] = ()
@@ -41,7 +42,7 @@ CATEGORIES: dict[str, Category] = {
             google_types=("cafe", "coffee_shop"),
             queries=("kavinė Vilnius", "kava Vilnius", "coffee shop Vilnius"),
             nace_codes=("56.30", "56.11"),
-            min_reviews=200,
+            min_reviews=100,
             related_nace_codes=("56.", "47.11", "47.2", "10.7", "10.83"),
         ),
         Category(
@@ -50,7 +51,7 @@ CATEGORIES: dict[str, Category] = {
             google_types=("car_repair", "tire_shop"),
             queries=("autoservisas Vilnius", "padangų servisas Vilnius"),
             nace_codes=("95.31",),
-            min_reviews=100,
+            min_reviews=50,
             related_nace_codes=("45.", "46.72", "47.81", "47.82", "33.12", "33.17"),
         ),
         Category(
@@ -59,7 +60,7 @@ CATEGORIES: dict[str, Category] = {
             google_types=("florist",),
             queries=("gėlių parduotuvė Vilnius", "gėlės Vilnius"),
             nace_codes=("47.76",),
-            min_reviews=100,
+            min_reviews=50,
             related_nace_codes=("46.22", "47.12", "01.19"),
         ),
     )

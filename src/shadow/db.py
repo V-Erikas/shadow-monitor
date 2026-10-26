@@ -94,6 +94,48 @@ CREATE TABLE IF NOT EXISTS matches (
     name_confidence      DOUBLE,
     PRIMARY KEY (run_id, place_id, category)
 );
+
+-- One row per matched company and category per run, flagged or not, so exclusions are explainable
+CREATE TABLE IF NOT EXISTS leads (
+    run_id              VARCHAR NOT NULL,
+    company_code        VARCHAR NOT NULL,
+    category            VARCHAR NOT NULL,
+    company_name        VARCHAR,
+    legal_form          VARCHAR,
+    nace_code           VARCHAR,
+    n_listings          INTEGER,
+    place_ids           VARCHAR[],
+    listing_names       VARCHAR[],
+    total_reviews       INTEGER,
+    avg_rating          DOUBLE,
+    review_delta        INTEGER,
+    weekly_open_hours   DOUBLE,
+    declared_staff      INTEGER,
+    insured_latest      INTEGER,
+    insured_avg_12m     DOUBLE,
+    insured_12m_ago     INTEGER,
+    sodra_month         DATE,
+    in_sodra            BOOLEAN,
+    avg_wage            DOUBLE,
+    peer_median_wage    DOUBLE,
+    wage_ratio          DOUBLE,
+    expected_staff      DOUBLE,
+    min_staff_for_hours DOUBLE,
+    staffing_score      DOUBLE,
+    hours_score         DOUBLE,
+    wage_score          DOUBLE,
+    signals_on          INTEGER,
+    match_confidence    DOUBLE,
+    match_methods       VARCHAR[],
+    score               DOUBLE,
+    flagged             BOOLEAN,
+    tier                VARCHAR,  -- 'multiple signals' | 'staffing gap only' (flagged) | 'watchlist'
+    rank                INTEGER,
+    exclusion_reason    VARCHAR,
+    reasons             VARCHAR[],
+    caveats             VARCHAR[],
+    PRIMARY KEY (run_id, company_code, category)
+);
 """
 
 
