@@ -136,6 +136,18 @@ CREATE TABLE IF NOT EXISTS leads (
     caveats             VARCHAR[],
     PRIMARY KEY (run_id, company_code, category)
 );
+
+CREATE TABLE IF NOT EXISTS dq_checks (
+    run_id     VARCHAR NOT NULL,
+    check_name VARCHAR NOT NULL,
+    severity   VARCHAR NOT NULL,  -- 'error' | 'warn'
+    passed     BOOLEAN NOT NULL,
+    value      DOUBLE,
+    threshold  VARCHAR,
+    details    VARCHAR,
+    checked_at TIMESTAMP NOT NULL,
+    PRIMARY KEY (run_id, check_name)
+);
 """
 
 

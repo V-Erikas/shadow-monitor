@@ -35,9 +35,13 @@ def run(steps: list[str], run_id: str | None = None) -> str:
 
     status = "failed"
     try:
+        dq_passed = True
         for name in steps:
-            log.info("%s -> %s", name, STEPS[name](run_id))
-        status = "success"
+            result = STEPS[name](run_id)
+            log.info("%s -> %s", name, result)
+            if name == "quality":
+                dq_passed = result
+        status = "success" if dq_passed else "dq_failed"
     finally:
         with db.connect() as con:
             con.execute("UPDATE runs SET finished_at = ?, status = ? WHERE run_id = ?", [_utcnow(), status, run_id])
