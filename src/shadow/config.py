@@ -35,7 +35,7 @@ CATEGORIES: dict[str, Category] = {
             label="Coffee shops",
             google_types=("cafe", "coffee_shop"),
             queries=("kavinė Vilnius", "kava Vilnius", "coffee shop Vilnius"),
-            nace_codes=("56.10", "56.30"),
+            nace_codes=("56.30", "56.11"),
             min_reviews=200,
         ),
         Category(
@@ -43,7 +43,7 @@ CATEGORIES: dict[str, Category] = {
             label="Car repair / tyre shops",
             google_types=("car_repair", "tire_shop"),
             queries=("autoservisas Vilnius", "padangų servisas Vilnius"),
-            nace_codes=("45.20", "45.32"),
+            nace_codes=("95.31",),
             min_reviews=100,
         ),
         Category(

@@ -40,8 +40,56 @@ CREATE TABLE IF NOT EXISTS google_listings (
     raw               JSON NOT NULL,
     PRIMARY KEY (run_id, place_id, category)
 );
+
+-- Reference tables are fully reloaded each run; uniqueness is checked by the loaders because
+-- DuckDB rejects delete + re-insert of the same primary key within one transaction
+CREATE TABLE IF NOT EXISTS registry_entities (
+    company_code    VARCHAR NOT NULL,
+    name            VARCHAR,
+    legal_form      VARCHAR,
+    status          VARCHAR,
+    registered_on   DATE,
+    deregistered_on DATE,
+    status_since    DATE,
+    loaded_at       TIMESTAMP NOT NULL
+);
+
+-- All municipalities: a Vilnius shop can belong to a company registered elsewhere
+CREATE TABLE IF NOT EXISTS sodra_monthly (
+    month        DATE NOT NULL,
+    company_code VARCHAR NOT NULL,
+    insurer_code VARCHAR,
+    name         VARCHAR,
+    municipality VARCHAR,
+    nace_code    VARCHAR,
+    nace_name    VARCHAR,
+    insured      INTEGER,
+    avg_wage     DOUBLE,  -- hidden by Sodra when insured < 3
+    insured_2    INTEGER,
+    avg_wage_2   DOUBLE,
+    social_tax   DOUBLE,
+    source_file  VARCHAR NOT NULL,
+    loaded_at    TIMESTAMP NOT NULL
+);
 """
 
 
 def init_schema(con: duckdb.DuckDBPyConnection) -> None:
     con.execute(SCHEMA)
+
+
+def replace_table(con: duckdb.DuckDBPyConnection, table: str, key: str, inserts: list[tuple[str, list]]) -> int:
+    """Atomically replace a reference table's contents; roll back if key is not unique."""
+    con.execute("BEGIN")
+    try:
+        con.execute(f"DELETE FROM {table}")
+        for sql, params in inserts:
+            con.execute(sql, params)
+        dup = con.execute(f"SELECT {key} FROM {table} GROUP BY ALL HAVING count(*) > 1 LIMIT 1").fetchone()
+        if dup:
+            raise ValueError(f"Duplicate key in {table}: {dup}")
+        con.execute("COMMIT")
+    except Exception:
+        con.execute("ROLLBACK")
+        raise
+    return con.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
