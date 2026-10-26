@@ -51,6 +51,17 @@ with st.sidebar:
     run_id = st.selectbox("Run", list(runs["run_id"]))
     current = runs[runs["run_id"] == run_id].iloc[0]
     st.caption(f"{current['scored']} companies scored · {current['flagged']} flagged · status {current['status']}")
+    dq = q("SELECT * FROM dq_checks WHERE run_id = ? ORDER BY passed, severity, check_name", run_id)
+    dq_errors = dq[~dq["passed"] & (dq["severity"] == "error")]
+    dq_warnings = dq[~dq["passed"] & (dq["severity"] == "warn")]
+    if dq.empty:
+        st.warning("No data quality checks for this run.")
+    elif len(dq_errors):
+        st.error(f"{len(dq_errors)} data quality error(s): do not rely on this run. See Overview.")
+    elif len(dq_warnings):
+        st.warning(f"{len(dq_warnings)} data quality warning(s). See Overview.")
+    else:
+        st.success(f"All {len(dq)} data quality checks passed.")
     st.caption(f"Match threshold: {MATCH_THRESHOLD:.2f}")
     with st.expander("How leads are scored"):
         st.markdown(
@@ -227,6 +238,18 @@ with overview_tab:
         if not points.empty:
             st.map(points, latitude="lat", longitude="lon", size=40)
 
+    st.markdown("**Data quality checks**")
+    if dq.empty:
+        st.info("Run the `quality` step to populate checks.")
+    else:
+        st.dataframe(
+            dq.assign(result=dq.apply(lambda r: "pass" if r["passed"] else f"FAIL ({r['severity']})", axis=1))[
+                ["result", "check_name", "value", "threshold", "details"]
+            ],
+            hide_index=True,
+            use_container_width=True,
+        )
+
 # ---------------------------------------------------------------- Compare runs
 with compare_tab:
     if len(runs) < 2:
@@ -271,12 +294,16 @@ GROUP BY ALL ORDER BY 1, 3 DESC""",
     "Busiest listings with ≤ 2 declared staff": """SELECT company_name, category, total_reviews, declared_staff, tier, exclusion_reason
 FROM leads WHERE run_id = (SELECT max(run_id) FROM leads) AND declared_staff <= 2
 ORDER BY total_reviews DESC LIMIT 20""",
+    "Data quality history": """SELECT run_id, count(*) AS checks,
+       count(*) FILTER (WHERE NOT passed AND severity = 'error') AS errors,
+       count(*) FILTER (WHERE NOT passed AND severity = 'warn') AS warnings
+FROM dq_checks GROUP BY 1 ORDER BY 1 DESC""",
     "Tables and columns": "SELECT table_name, column_name, data_type FROM information_schema.columns ORDER BY 1, ordinal_position",
 }
 with sql_tab:
     st.caption(
         "Read-only access to all tables: `leads`, `matches`, `google_listings`, `sodra_monthly`, "
-        "`registry_entities`, `runs`."
+        "`registry_entities`, `runs`, `dq_checks`."
     )
     example = st.selectbox("Example", list(EXAMPLES))
     sql = st.text_area("SQL", EXAMPLES[example], height=160)
