@@ -1,4 +1,3 @@
-"""Company codes published on business websites (footer or contacts page)."""
 import gzip
 import html
 import json
