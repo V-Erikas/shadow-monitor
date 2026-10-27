@@ -13,4 +13,4 @@ services:
     command: >
       sh -c "python -m shadow.pipeline --skip-if-exists;
              exec streamlit run app/streamlit_app.py --server.address=0.0.0.0 --server.port=8501
-             --server.headless=true --browser.gatherUsageStats=false"
+             --server.headless=true --browser.gatherUsageStats=false --browser.serverAddress=localhost"
