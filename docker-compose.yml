@@ -5,11 +5,12 @@ services:
       - path: .env
         required: false
     ports:
-      - "8501:8501"
+      - "127.0.0.1:8501:8501"
     volumes:
       - ./data:/app/data
       - ./output:/app/output
-    # UI still starts if the pipeline fails, so the analyst can see the last good run
+      - ./snapshots:/app/snapshots
     command: >
       sh -c "python -m shadow.pipeline --skip-if-exists;
-             exec streamlit run app/streamlit_app.py --server.address=0.0.0.0 --server.port=8501"
+             exec streamlit run app/streamlit_app.py --server.address=0.0.0.0 --server.port=8501
+             --server.headless=true --browser.gatherUsageStats=false"
