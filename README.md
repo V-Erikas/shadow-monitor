@@ -1,11 +1,9 @@
 # Shadow-economy monitor (Vilnius)
 
 Surfaces Vilnius businesses that look busy to the public but quiet on paper: many Google
-reviews and long opening hours, but few insured employees in Sodra. The output is a short,
-prioritised and fully explainable **and**is***or** S**te Tax Inspectorate (VMI) analyst with
-limited inspection capacity.
+reviews and long opening hours, but few insured employees in Sodra.
 
-Categories: **cofe shops**, *arepair / tyre shops**, *lor shops**.
+Categories: **coffee shops**, **car repair / tyre shops**, **flower shops**.
 
 # Quick start
 
